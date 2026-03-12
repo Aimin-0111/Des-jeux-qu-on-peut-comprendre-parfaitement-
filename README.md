@@ -17,6 +17,7 @@ Ce programme résout des **jeux combinatoires** sur un graphe orienté en utilis
 ## Comment fonctionne le programme
 
 ### 1. **Lecture des données** (Input)
+Le programme lit le fichier **`input.txt`** au lancement :
 ```
 n m k dep arr
 u₁ v₁
@@ -29,6 +30,8 @@ u₂ v₂
 - `dep` : sommet de départ
 - `arr` : sommet d'arrivée (but perdant)
 
+> Le fichier **`input.txt`** doit être dans le même répertoire que l'exécutable
+
 ### 2. **Préparation du graphe** (Fonction `preparer()`)
 - Pour chaque sommet `i`, calcule **tous les sommets atteignables à distance exacte k**
 - Stocke les destinations : `dest_k[i]` = liste des sommets à k arcs de `i`
@@ -40,15 +43,16 @@ L'algorithme classifie chaque sommet en 3 états :
 
 #### **PERDANT (P - rouge)**
 - Le sommet d'arrivée (joueur commençant là perd)
-- Tous les sommets n'ayant aucune destination à distance k (joueur bloqué)
+- Sommets où **tous** les k-chemins mènent à des positions GAGNANTES (défaite assurée)
 
 #### **GAGNANT (G - vert)**
 - Sommet d'où on peut atteindre directement un position PERDANT en k pas
 - Donc le joueur peut forcer l'adversaire vers une défaite
 
 #### **NUL (N - gris)**
+- Sommet sans aucun k-chemin (joueur bloqué, ne peut pas jouer)
 - Sommet coincé dans une boucle infinie d'états INCONNU
-- Aucun joueur ne peut forcer la victoire
+- Aucun joueur ne peut forcer la victoire → partie nulle
 
 ### 4. **Propagation en queue** (BFS)
 ```
@@ -62,12 +66,16 @@ Tant que la file n'est pas vide :
 
 ### 5. **Sortie graphique** (Mermaid.js)
 Génère un diagramme du graphe avec couleurs :
-- 🟢 GAGNANT (victoire possible)
-- 🔴 PERDANT (défaite assurée)
-- ⚪ NUL (boucle/pas de résolution)
+- 🟢 GAGNANT (victoire possible) → vert (#C5E1A5)
+- 🔴 PERDANT (défaite assurée) → rouge (#EF9A9A)
+- ⚪ NUL (joueur bloqué ou boucle infinie) → gris (#BDBDBD)
 
-Le site de visualisation recommandé est https://mermaid.live/
-Le programme sorte un fichier Mermaid.js après l'exécution, l'utilisateur peut exporter et ouvrir le fichier avec une logiciel de visualisation
+**Visualisation :**
+1. Copier la sortie du terminal
+2. Aller sur https://mermaid.live/
+3. Coller le code dans l'éditeur
+
+**Format des nœuds :** Les IDs utilisent le format `n0`, `n1`, etc. (format compatible Mermaid)
 ---
 
 ## Exemple
@@ -97,15 +105,32 @@ Résultat:
 
 ---
 
+## Utilisation
+
+### Étapes :
+1. **Préparer le fichier d'entrée** : Créer `input.txt` avec votre graphe
+2. **Compiler** (si nécessaire) : `g++ -g main.cpp -o main.exe`
+3. **Exécuter** : `./main.exe` (ou double-clic sur l'exécutable)
+4. **Visualiser** : Copier la sortie et aller sur https://mermaid.live/
+
+---
+
 ## Validation des entrées
 ✅ n ≥ 1, k ≥ 1  
 ✅ 0 ≤ dep, arr < n  
 ✅ 0 ≤ u, v < n pour chaque arc  
-✅ m ≥ 0
+✅ m ≥ 0  
+✅ Fichier `input.txt` existant
 
 ---
 
 ## Résultat final
 Affiche :
-1. Diagramme Mermaid du graphe colorisé
-2. Verdict au départ : **VICTOIRE** | **DÉFAITE** | **NUL**
+1. **Diagramme Mermaid** du graphe colorisé
+2. **Liste des états** de chaque sommet (G/P/N)
+3. **Verdict au départ** : **VICTOIRE** | **DÉFAITE** | **NUL**
+
+### Interprétation :
+- **VICTOIRE** : Le premier joueur peut forcer la victoire
+- **DÉFAITE** : Le second joueur peut forcer la victoire
+- **NUL** : Les deux joueurs jouent bien → partie sans gagnant
