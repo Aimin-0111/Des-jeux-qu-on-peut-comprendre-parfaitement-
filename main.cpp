@@ -3,6 +3,7 @@
 #include <queue>
 #include <set>
 #include <string>
+#include <fstream>
 
 #ifdef _WIN32
     #pragma comment(linker, "/SUBSYSTEM:CONSOLE")
@@ -30,21 +31,35 @@ struct Graphe {
 
     void ajouterArc(int u, int v) { adj[u].push_back(v); }
 
-    // DFS pour trouver tous les sommets à distance EXACTE k
-    void calculerDestinationsK(int u, int d, set<int>& final_dest) {
-        if (d == k) {
-            final_dest.insert(u);
-            return;
-        }
-        for (int v : adj[u]) {
-            calculerDestinationsK(v, d + 1, final_dest);
+    // BFS pour trouver tous les sommets à distance EXACTE k
+    void calculerDestinationsK(int start, set<int>& final_dest) {
+        vector<int> dist(n, -1);
+        queue<int> q;
+        q.push(start);
+        dist[start] = 0;
+        
+        while (!q.empty()) {
+            int u = q.front();
+            q.pop();
+            
+            if (dist[u] == k) {
+                final_dest.insert(u);
+                continue;
+            }
+            
+            for (int v : adj[u]) {
+                if (dist[v] == -1) {
+                    dist[v] = dist[u] + 1;
+                    q.push(v);
+                }
+            }
         }
     }
 
     void preparer() {
         for (int i = 0; i < n; ++i) {
             set<int> dests;
-            calculerDestinationsK(i, 0, dests);
+            calculerDestinationsK(i, dests);
             for (int d : dests) {
                 dest_k[i].push_back(d);
                 pred_k[d].push_back(i);
@@ -57,11 +72,15 @@ struct Graphe {
 void resoudre(Graphe& g) {
     queue<int> q;
 
-    // Initialisation : L'arrivée et les sommets sans issue (à distance k) sont PERDANTS
+    // Initialisation : L'arrivée est PERDANT pour celui qui arrive
+    // Les sommets sans issue (à distance k) sont NUL (ne peut pas jouer)
     for (int i = 0; i < g.n; ++i) {
-        if (i == g.arrivee || g.dest_k[i].empty()) {
+        if (i == g.arrivee) {
             g.etats[i] = PERDANT;
             q.push(i);
+        }
+        else if (g.dest_k[i].empty()) {
+            g.etats[i] = NUL;  // Can't move k steps = draw
         }
     }
 
@@ -94,8 +113,14 @@ void resoudre(Graphe& g) {
 }
 
 int main() {
+    ifstream infile("input.txt");
+    if (!infile.is_open()) {
+        cerr << "Erreur : Impossible d'ouvrir input.txt" << endl;
+        return 1;
+    }
+    
     int n, m, k, dep, arr;
-    if (!(cin >> n >> m >> k >> dep >> arr)) {
+    if (!(infile >> n >> m >> k >> dep >> arr)) {
         cerr << "Erreur : Format d'entree invalide" << endl;
         return 1;
     }
@@ -108,7 +133,7 @@ int main() {
     Graphe g(n, k, dep, arr);
     for (int i = 0; i < m; ++i) {
         int u, v;
-        if (!(cin >> u >> v)) {
+        if (!(infile >> u >> v)) {
             cerr << "Erreur : Arc numero " << i+1 << " mal forme" << endl;
             return 1;
         }
@@ -126,14 +151,12 @@ int main() {
     for (int i = 0; i < n; ++i) {
         string res = (g.etats[i] == GAGNANT) ? "G" : (g.etats[i] == PERDANT ? "P" : "N");
         string color = (g.etats[i] == GAGNANT) ? "#C5E1A5" : (g.etats[i] == PERDANT ? "#EF9A9A" : "#BDBDBD");
-        string nodeShape = (i == g.arrivee) ? ")))))" : "))))";
-        string nodeStart = (i == g.arrivee) ? "(((((" : "((((";
-        cout << "  " << i << nodeStart << " " << res << " " << nodeShape << endl;
-        cout << "  style " << i << " fill:" << color << endl;
+        cout << "  n" << i << "[\" " << res << " \"]" << endl;
+        cout << "  style n" << i << " fill:" << color << endl;
     }
-    for (int u = 0; u < n; u++) for (int v : g.adj[u]) cout << "  " << u << " --> " << v << endl;
+    for (int u = 0; u < n; u++) for (int v : g.adj[u]) cout << "  n" << u << " --> n" << v << endl;
     
-    cout << "\n% Resultat au depart (Sommet " << g.depart << "): "
+    cout << endl << "%% Resultat au depart (Sommet " << g.depart << "): "
          << (g.etats[g.depart] == GAGNANT ? "VICTOIRE" : (g.etats[g.depart] == PERDANT ? "DEFAITE" : "NUL")) << endl;
 
     return 0;
