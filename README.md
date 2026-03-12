@@ -66,6 +66,8 @@ Génère un diagramme du graphe avec couleurs :
 - 🔴 PERDANT (défaite assurée)
 - ⚪ NUL (boucle/pas de résolution)
 
+Le site de visualisation recommandé est https://mermaid.live/
+Le programme sorte un fichier Mermaid.js après l'exécution, l'utilisateur peut exporter et ouvrir le fichier avec une logiciel de visualisation
 ---
 
 ## Exemple
